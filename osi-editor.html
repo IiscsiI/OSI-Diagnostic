@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur OSI - Arbre de Décision</title>
+<style>
+* {box-sizing: border-box; margin: 0; padding: 0;}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f2f5;
+    padding: 20px;
+    color: #333;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+.toolbar {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.btn-primary {background: #3498db; color: white;}
+.btn-success {background: #27ae60; color: white;}
+.btn-warning {background: #f39c12; color: white;}
+.btn-danger {background: #e74c3c; color: white;}
+.btn-secondary {background: #7f8c8d; color: white;}
+.btn:hover {opacity: 0.9; transform: translateY(-1px);}
+
+.editor-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 20px;
+    height: calc(100vh - 250px);
+}
+.layer-list {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+    overflow-y: auto;
+}
+.layer-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+.layer-item:hover {background: #e3f2fd;}
+.layer-item.active {
+    background: #3498db;
+    color: white;
+    border-color: #2980b9;
+}
+.editor-panel {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 30px;
+    overflow-y: auto;
+}
+.question-block {
+    background: #f8f9fa;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    position: relative;
+}
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.question-text {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.answer-list {
+    margin-left: 20px;
+}
+.answer-item {
+    background: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.answer-text {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+.answer-action {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    width: 120px;
+}
+.answer-value {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+.add-btn {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #3498db;
+    background: #e3f2fd;
+    color: #3498db;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.add-btn:hover {background: #bbdefb;}
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 10px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.close {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+}
+.close:hover {color: #333;}
+.error-message {
+    background: #ffebee;
+    color: #c62828;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #f44336;
+    margin: 10px 0;
+}
+.info-message {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #2196f3;
+    margin: 10px 0;
+}
+.success-message {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #4caf50;
+    margin: 10px 0;
+}
+code {
+    background: #f5f5f5;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+pre {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 5px;
+    overflow-x: auto;
+    font-size: 12px;
+}
+.import-area {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    border: 2px dashed #ddd;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+}
+#fileInput {display: none;}
+.file-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #3498db;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.file-label:hover {background: #2980b9;}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🛠️ Éditeur d'Arbre de Décision OSI</h1>
+    
+    <div class="toolbar">
+        <label for="fileInput" class="file-label">📁 Charger fichier HTML</label>
+        <input type="file" id="fileInput" accept=".html">
+        <button class="btn btn-warning" onclick="importFromText()">📋 Importer JS</button>
+        <button class="btn btn-success" onclick="exportJS()">💾 Exporter JS</button>
+        <button class="btn btn-primary" onclick="addLayer()">➕ Nouvelle couche</button>
+        <button class="btn btn-danger" onclick="clearAll()">🗑️ Tout effacer</button>
+        <button class="btn btn-secondary" onclick="loadExample()">📝 Charger exemple</button>
+        <button class="btn btn-secondary" onclick="resetToOriginal()">↩️ Annuler les modifications</button>
+    </div>
+
+    <div class="editor-grid">
+        <div class="layer-list">
+            <h3>Couches OSI</h3>
+            <div id="layerList"></div>
+        </div>
+        
+        <div class="editor-panel">
+            <div id="editorContent">
+                <p style="text-align: center; color: #999; margin-top: 50px;">
+                    Chargez un fichier ou importez du JavaScript pour commencer
+                </p>
+                <div style="text-align: center; margin-top: 30px;">
+                    <h3>🚀 Démarrage rapide</h3>
+                    <p>1. Chargez votre fichier <code>osi-diagnostic-tool.html</code> avec le bouton "📁 Charger fichier HTML"</p>
+                    <p>2. Si cela ne fonctionne pas, utilisez "📋 Importer JS" et copiez manuellement la structure</p>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 20px;">
+                        💡 Pour l'import manuel : ouvrez votre fichier dans un éditeur, cherchez "const layers = {" 
+                        et copiez tout jusqu'au "};" final
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'export -->
+<div id="exportModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('exportModal')">&times;</span>
+        <h2>JavaScript exporté</h2>
+        <p>Copiez ce code et remplacez la variable <code>layers</code> dans votre fichier original :</p>
+        <pre id="exportedCode"></pre>
+        <button class="btn btn-primary" onclick="copyToClipboard()">📋 Copier</button>
+    </div>
+</div>
+
+<!-- Modal d'import -->
+<div id="importModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('importModal')">&times;</span>
+        <h2>Importer JavaScript</h2>
+        <p>Collez ici la variable <code>layers</code> de votre fichier :</p>
+        <p style="font-size: 0.9em; color: #666;">
+            💡 Astuce : Ouvrez votre fichier HTML dans un éditeur de texte, cherchez "const layers = {" 
+            et copiez tout jusqu'au "};" correspondant.
+        </p>
+        <textarea id="importArea" class="import-area" placeholder="const layers = {&#10;    1: {&#10;        name: &quot;Physique&quot;,&#10;        ...&#10;    }&#10;};" style="font-family: monospace;"></textarea>
+        <button class="btn btn-primary" onclick="processImport()">Importer</button>
+    </div>
+</div>
+
+<script>
+let layers = {};
+let currentLayer = null;
+let originalLayers = null;
+
+// Charger fichier HTML
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        extractLayers(content);
+
+        // Permettre rechargement du même fichier ensuite
+        document.getElementById('fileInput').value = '';
+    };
+    reader.readAsText(file);
+});
+
+// Extraire la structure layers du HTML
+function extractLayers(html) {
+    try {
+        // Méthode 1: Essayer avec regex simple
+        let match = html.match(/const\s+layers\s*=\s*({[\s\S]*?});/);
+        
+        if (!match) {
+            // Méthode 2: Recherche manuelle plus flexible
+            const startIndex = html.indexOf('const layers = {');
+            if (startIndex === -1) {
+                showMessage('Structure "layers" non trouvée', 'error');
+                showMessage('Utilisez plutôt "Importer JS" en copiant manuellement', 'info');
+                return;
+            }
+            // Tentative 2 avec une approche JSON
+        if (!layers) {
+            console.log('Tentative avec conversion JSON...');
+            try {
+                // Convertir la syntaxe JS en JSON valide
+                let jsonStr = layersStr
+                    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":') // Clés entre guillemets
+                    .replace(/'/g, '"') // Remplacer apostrophes par guillemets
+                    .replace(/`([^`]*)`/g, '"$1"') // Remplacer backticks par guillemets
+                    .replace(/,\s*}/g, '}') // Enlever virgules finales
+                    .replace(/,\s*]/g, ']'); // Enlever virgules finales dans arrays
+                
+                layers = JSON.parse(jsonStr);
+                console.log('Parsing JSON réussi !');
+            } catch (jsonError) {
+                console.error('Erreur parsing JSON:', jsonError);
+                throw new Error('Impossible de parser la structure. Utilisez l\'import manuel.');
+            }
+        }
+            
+            // Compter les accolades pour trouver la fin
+            let braceCount = 0;
+            let i = startIndex + 15; // après "const layers = {"
+            let inString = false;
+            let stringChar = '';
+            
+            for (; i < html.length; i++) {
+                const char = html[i];
+                const prevChar = i > 0 ? html[i-1] : '';
+                
+                // Gérer les strings
+                if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\') {
+                    if (!inString) {
+                        inString = true;
+                        stringChar = char;
+                    } else if (char === stringChar) {
+                        inString = false;
+                    }
+                }
+                
+                // Compter les accolades hors des strings
+                if (!inString) {
+                    if (char === '{') braceCount++;
+                    else if (char === '}') {
+                        if (braceCount === 0) {
+                            i++; // Inclure la dernière accolade
+                            break;
+                        }
+                        braceCount--;
+                    }
+                }
+            }
+            
+            const layersStr = html.substring(startIndex, i + 1);
+            match = [layersStr, layersStr.replace('const layers = ', '')];
+        }
+        
+        // Parser le résultat
+        const layersCode = match[1];
+        
+        // Méthode sécurisée pour parser
+        const tempFunc = new Function('return ' + layersCode);
+        layers = tempFunc();
+        originalLayers = JSON.parse(JSON.stringify(layers));
+        
+        // Vérifier que c'est bien un objet valide
+        if (typeof layers !== 'object' || layers === null) {
+            throw new Error('Structure layers invalide');
+        }
+        
+        renderLayerList();
+        showMessage('Structure importée avec succès !', 'success');
+        
+        // Si on a au moins une couche, la sélectionner
+        const firstLayer = Object.keys(layers)[0];
+        if (firstLayer) {
+            currentLayer = firstLayer;
+            selectLayer(firstLayer);
+        }
+        
+    } catch (e) {
+        console.error('Erreur:', e);
+        showMessage('Erreur lors de l\'extraction automatique', 'error');
+        
+        // Afficher des instructions détaillées
+        setTimeout(() => {
+            if (confirm('L\'extraction automatique a échoué.\n\nVoulez-vous utiliser l\'import manuel ?')) {
+                importFromText();
+            }
+        }, 500);
+    }
+}
+
+// Afficher la liste des couches
+function renderLayerList() {
+    const list = document.getElementById('layerList');
+    list.innerHTML = '';
+    
+    Object.keys(layers).forEach(key => {
+        const layer = layers[key];
+        const item = document.createElement('div');
+        item.className = 'layer-item';
+        item.innerHTML = `
+            <span style="flex: 1;">Couche ${key} - ${layer.name}</span>
+            <button class="btn btn-danger btn-sm" style="margin-left: auto;" onclick="event.stopPropagation(); deleteLayer('${key}')">❌</button>
+        `;
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.onclick = function() {
+            selectLayer(key);
+        };
+        list.appendChild(item);
+    });
+}
+
+//Supprimer une couche
+function deleteLayer(layerNum) {
+    //Empêche la suppression de la dernière couche
+    if (Object.keys(layers).length <= 1) {
+        alert("Impossible de supprimer la dernière couche.");
+        return;
+    }
+
+    if (confirm(`Supprimer la couche ${layerNum} ?`)) {
+        delete layers[layerNum];
+
+        // Réinitialiser la sélection si la couche supprimée était active
+        if (currentLayer === layerNum) {
+            currentLayer = null;
+            document.getElementById('editorContent').innerHTML = '<p style="text-align: center; color: #999; margin-top: 50px;">Aucune couche sélectionnée</p>';
+        }
+
+        renderLayerList();
+    }
+}
+
+// Sélectionner une couche
+function selectLayer(layerNum) {
+    currentLayer = layerNum;
+    document.querySelectorAll('.layer-item').forEach((item, index) => {
+        item.classList.remove('active');
+        if (index === parseInt(layerNum) - 1) {
+            item.classList.add('active');
+        }
+    });
+    renderEditor();
+}
+
+// Afficher l'éditeur pour la couche sélectionnée
+function renderEditor() {
+    if (!currentLayer) return;
+    
+    const layer = layers[currentLayer];
+    let html = `<h2>Couche ${currentLayer} - ${layer.name}</h2>`;
+    
+    layer.questions.forEach((question, qIdx) => {
+        html += `
+            <div class="question-block">
+                <div class="question-header">
+                    <strong>Question ${qIdx + 1}</strong>
+                    <button class="btn btn-danger btn-sm" onclick="deleteQuestion(${qIdx})">Supprimer</button>
+                </div>
+                ${question.id ? `<input type="text" class="answer-text" value="ID: ${question.id}" onchange="updateQuestionId(${qIdx}, this.value)" style="margin-bottom: 10px;">` : ''}
+                <textarea class="question-text" onchange="updateQuestion(${qIdx}, this.value)">${question.q}</textarea>
+                <div class="answer-list">
+                    <strong>Réponses :</strong>
+        `;
+        
+        question.answers.forEach((answer, aIdx) => {
+            html += `
+                <div class="answer-item">
+                    <input type="text" class="answer-text" value="${answer.text}" 
+                           onchange="updateAnswer(${qIdx}, ${aIdx}, 'text', this.value)">
+                    <select class="answer-action" onchange="updateAnswer(${qIdx}, ${aIdx}, 'action', this.value)">
+                        <option value="next" ${answer.action === 'next' ? 'selected' : ''}>Suivant</option>
+                        <option value="layer" ${answer.action === 'layer' ? 'selected' : ''}>Aller couche</option>
+                        <option value="fix" ${answer.action === 'fix' ? 'selected' : ''}>Correction</option>
+                        <option value="cmd" ${answer.action === 'cmd' ? 'selected' : ''}>Commande</option>
+                        <option value="goto" ${answer.action === 'goto' ? 'selected' : ''}>Aller à ID</option>
+                        <option value="escalate" ${answer.action === 'escalate' ? 'selected' : ''}>Escalader</option>
+                        <option value="complete" ${answer.action === 'complete' ? 'selected' : ''}>Terminer</option>
+                    </select>
+            `;
+            
+            // Champ additionnel selon l'action
+            if (answer.action === 'layer') {
+                html += `<input type="number" class="answer-value" value="${answer.target || ''}" 
+                         placeholder="N° couche" onchange="updateAnswer(${qIdx}, ${aIdx}, 'target', this.value)">`;
+            } else if (answer.action === 'fix') {
+                html += `<input type="text" class="answer-value" value="${answer.fix || ''}" 
+                         placeholder="Action corrective" onchange="updateAnswer(${qIdx}, ${aIdx}, 'fix', this.value)">`;
+            } else if (answer.action === 'cmd') {
+                html += `<input type="text" class="answer-value" value="${answer.cmd || ''}" 
+                         placeholder="Commande" onchange="updateAnswer(${qIdx}, ${aIdx}, 'cmd', this.value)">`;
+            } else if (answer.action === 'goto') {
+                html += `<input type="text" class="answer-value" value="${answer.target || ''}" 
+                         placeholder="ID cible" onchange="updateAnswer(${qIdx}, ${aIdx}, 'target', this.value)">`;
+            } else {
+                html += `<div style="flex: 1;"></div>`;
+            }
+            
+            html += `
+                    <button class="btn btn-danger btn-sm" onclick="deleteAnswer(${qIdx}, ${aIdx})">X</button>
+                </div>
+            `;
+        });
+        
+        html += `
+                    <button class="add-btn" onclick="addAnswer(${qIdx})">+ Ajouter réponse</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `<button class="add-btn" onclick="addQuestion()">+ Ajouter question</button>`;
+    
+    document.getElementById('editorContent').innerHTML = html;
+}
+
+// Fonctions de mise à jour
+function updateQuestion(qIdx, value) {
+    layers[currentLayer].questions[qIdx].q = value;
+}
+
+function updateQuestionId(qIdx, value) {
+    const id = value.replace('ID: ', '').trim();
+    if (id) {
+        layers[currentLayer].questions[qIdx].id = id;
+    } else {
+        delete layers[currentLayer].questions[qIdx].id;
+    }
+}
+
+function updateAnswer(qIdx, aIdx, field, value) {
+    const answer = layers[currentLayer].questions[qIdx].answers[aIdx];
+    
+    if (field === 'action') {
+        answer.action = value;
+        // Nettoyer les champs non pertinents
+        delete answer.fix;
+        delete answer.cmd;
+        delete answer.target;
+    } else if (field === 'target' && value) {
+        answer.target = isNaN(value) ? value : parseInt(value);
+    } else if (value) {
+        answer[field] = value;
+    }
+    
+    renderEditor();
+}
+
+// Fonctions d'ajout/suppression
+function addLayer() {
+    const keys = Object.keys(layers).map(Number);
+    const num = keys.length > 0 ? Math.max(...keys) + 1 : 1;
+    layers[num] = {
+        name: "Nouvelle couche",
+        questions: [{
+            q: "Nouvelle question ?",
+            answers: [{text: "Oui", action: "next"}]
+        }]
+    };
+    renderLayerList();
+    
+    // Sélectionner la nouvelle couche
+    currentLayer = num.toString();
+    selectLayer(currentLayer);
+}
+
+function addQuestion() {
+    layers[currentLayer].questions.push({
+        q: "Nouvelle question ?",
+        answers: [{text: "Oui", action: "next"}]
+    });
+    renderEditor();
+}
+
+function addAnswer(qIdx) {
+    layers[currentLayer].questions[qIdx].answers.push({
+        text: "Nouvelle réponse",
+        action: "next"
+    });
+    renderEditor();
+}
+
+function deleteQuestion(qIdx) {
+    if (confirm('Supprimer cette question ?')) {
+        layers[currentLayer].questions.splice(qIdx, 1);
+        renderEditor();
+    }
+}
+
+function deleteAnswer(qIdx, aIdx) {
+    layers[currentLayer].questions[qIdx].answers.splice(aIdx, 1);
+    renderEditor();
+}
+
+// Export/Import
+function exportJS() {
+    const code = 'const layers = ' + JSON.stringify(layers, null, 4) + ';';
+    document.getElementById('exportedCode').textContent = code;
+    document.getElementById('exportModal').style.display = 'block';
+}
+
+function importFromText() {
+    document.getElementById('importModal').style.display = 'block';
+}
+
+function processImport() {
+    const text = document.getElementById('importArea').value.trim();
+    try {
+        // Nettoyer le texte
+        let cleanText = text;
+        
+        // Si l'utilisateur a copié avec "const layers =", on l'enlève
+        if (cleanText.startsWith('const layers')) {
+            cleanText = cleanText.replace(/^const\s+layers\s*=\s*/, '');
+        }
+        
+        // Enlever le point-virgule final s'il existe
+        if (cleanText.endsWith(';')) {
+            cleanText = cleanText.slice(0, -1);
+        }
+        
+        // Parser avec Function pour plus de sécurité
+        const func = new Function('return ' + cleanText);
+        layers = func();
+        originalLayers = JSON.parse(JSON.stringify(layers));
+        
+        renderLayerList();
+        closeModal('importModal');
+        showMessage('Import réussi !', 'success');
+        document.getElementById('importArea').value = '';
+    } catch (e) {
+        console.error('Erreur d\'import:', e);
+        showMessage('Erreur d\'import : ' + e.message, 'error');
+    }
+}
+
+function copyToClipboard() {
+    const code = document.getElementById('exportedCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        showMessage('Code copié !', 'success');
+    });
+}
+
+function clearAll() {
+    if (confirm('Effacer toutes les données ?')) {
+        layers = {};
+        currentLayer = null;
+        renderLayerList();
+        document.getElementById('editorContent').innerHTML = '<p style="text-align: center; color: #999; margin-top: 50px;">Aucune donnée</p>';
+    }
+}
+
+//Annuler les modifications et revenir à la version d'origine
+function resetToOriginal() {
+    if (!originalLayers) {
+        showMessage("Aucune version originale enregistrée", "warning");
+        return;
+    }
+
+    if (confirm("Annuler toutes les modifications et revenir à la version d'origine ?")) {
+        layers = JSON.parse(JSON.stringify(originalLayers));
+        currentLayer = Object.keys(layers)[0] || null;
+        renderLayerList();
+
+        if (currentLayer) {
+            selectLayer(currentLayer);
+        } else {
+            document.getElementById('editorContent').innerHTML = '<p style="text-align: center; color: #999; margin-top: 50px;">Aucune donnée</p>';
+        }
+
+        showMessage("Modifications annulées", "success");
+    }
+}
+
+function loadExample() {
+    if (Object.keys(layers).length > 0) {
+        if (!confirm('Charger un exemple va remplacer les données actuelles. Continuer ?')) {
+            return;
+        }
+    }
+    
+    layers = {
+        1: {
+            name: "Physique",
+            questions: [
+                {
+                    q: "Le câble réseau est-il correctement branché ?",
+                    answers: [
+                        {text: "Oui", action: "next"},
+                        {text: "Non", action: "fix", fix: "Branchez correctement le câble réseau"},
+                        {text: "WiFi", action: "goto", target: "wifi"}
+                    ]
+                },
+                {
+                    id: "wifi",
+                    q: "Êtes-vous connecté au bon réseau WiFi ?",
+                    answers: [
+                        {text: "Oui", action: "layer", target: 2},
+                        {text: "Non", action: "fix", fix: "Connectez-vous au réseau d'entreprise"}
+                    ]
+                }
+            ]
+        },
+        2: {
+            name: "Liaison de données",
+            questions: [
+                {
+                    q: "La carte réseau est-elle détectée ?",
+                    answers: [
+                        {text: "Oui", action: "layer", target: 3},
+                        {text: "Non", action: "fix", fix: "Réinstallez les pilotes réseau"}
+                    ]
+                }
+            ]
+        }
+    };
+    
+    renderLayerList();
+    showMessage('Exemple chargé avec succès !', 'success');
+    
+    // Sélectionner la première couche
+    currentLayer = '1';
+    selectLayer('1');
+}
+
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+function showMessage(msg, type = 'info') {
+    // Créer une notification visuelle
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        z-index: 2000;
+        animation: slideIn 0.3s ease-out;
+        max-width: 400px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    `;
+    
+    // Couleurs selon le type
+    const colors = {
+        success: '#27ae60',
+        error: '#e74c3c',
+        info: '#3498db',
+        warning: '#f39c12'
+    };
+    notification.style.backgroundColor = colors[type] || colors.info;
+    notification.textContent = msg;
+    
+    document.body.appendChild(notification);
+    
+    // Retirer après 4 secondes
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Fermer modal en cliquant dehors
+window.onclick = function(event) {
+    if (event.target.className === 'modal') {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+</body>
+</html>

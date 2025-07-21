@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnostic OSI Étendu</title>
+<style>
+* {box-sizing: border-box; margin: 0; padding: 0;}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 30px;
+}
+h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.layer-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.layer-btn {
+    padding: 15px;
+    border: 2px solid #3498db;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+.layer-btn:hover {
+    background: #3498db;
+    color: white;
+    transform: translateY(-2px);
+}
+.layer-btn.active {
+    background: #2c3e50;
+    color: white;
+    border-color: #2c3e50;
+}
+.diagnostic-area {
+    display: none;
+    animation: fadeIn 0.3s;
+}
+.diagnostic-area.active {display: block;}
+.question-block {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.question {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+.answers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.answer-btn {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.answer-btn:hover {
+    background: #e3f2fd;
+    border-color: #3498db;
+}
+.action-box {
+    background: #e8f5e9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 4px solid #4caf50;
+}
+.error-box {
+    background: #ffebee;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 4px solid #f44336;
+}
+.history {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: space-between;
+}
+.nav-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.btn-primary {background: #3498db; color: white;}
+.btn-secondary {background: #95a5a6; color: white;}
+.btn-danger {background: #e74c3c; color: white;}
+.nav-btn:hover {opacity: 0.9; transform: translateY(-1px);}
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+.quick-start {
+    background: #e3f2fd;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+.scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+.scenario-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.scenario-card:hover {
+    border-color: #3498db;
+    transform: translateY(-2px);
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🔧 Diagnostic OSI Étendu</h1>
+    
+    <div id="quickStart" class="quick-start">
+        <h2>Démarrage Rapide - Sélectionnez votre problème :</h2>
+        <div class="scenario-grid">
+            <div class="scenario-card" onclick="startDiagnostic(1)">
+                <h3>🔌 Pas de réseau</h3>
+                <p>Connexion impossible, pas d'accès</p>
+            </div>
+            <div class="scenario-card" onclick="startDiagnostic(4)">
+                <h3>🔐 Authentification</h3>
+                <p>Problème de connexion/session</p>
+            </div>
+            <div class="scenario-card" onclick="startDiagnostic(7)">
+                <h3>💻 Application</h3>
+                <p>Logiciel qui ne fonctionne pas</p>
+            </div>
+            <div class="scenario-card" onclick="startDiagnostic(9)">
+                <h3>🚫 Accès refusé</h3>
+                <p>Droits, filtrage, blocage</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="layerSelector" class="layer-selector" style="display:none;">
+        <div class="layer-btn" onclick="selectLayer(1)">Couche 1<br>Physique</div>
+        <div class="layer-btn" onclick="selectLayer(2)">Couche 2<br>Liaison</div>
+        <div class="layer-btn" onclick="selectLayer(3)">Couche 3<br>Réseau</div>
+        <div class="layer-btn" onclick="selectLayer(4)">Couche 4<br>Transport</div>
+        <div class="layer-btn" onclick="selectLayer(5)">Couche 5<br>Session</div>
+        <div class="layer-btn" onclick="selectLayer(6)">Couche 6<br>Présentation</div>
+        <div class="layer-btn" onclick="selectLayer(7)">Couche 7<br>Application</div>
+        <div class="layer-btn" onclick="selectLayer(8)">Couche 8<br>Humain</div>
+        <div class="layer-btn" onclick="selectLayer(9)">Couche 9<br>Politiques</div>
+        <div class="layer-btn" onclick="selectLayer(10)">Couche 10<br>Réglementation</div>
+    </div>
+
+    <div id="diagnosticArea" class="diagnostic-area"></div>
+    
+    <div id="history" class="history" style="display:none;">
+        <h3>Historique du diagnostic :</h3>
+        <ul id="historyList"></ul>
+    </div>
+</div>
+
+<script>
+const layers = {
+    1: {
+        name: "Physique",
+        questions: [
+            {
+                q: "Le câble réseau est-il correctement branché ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Branchez correctement le câble réseau"},
+                    {text: "WiFi", action: "goto", target: "wifi"}
+                ]
+            },
+            {
+                id: "wifi",
+                q: "Êtes-vous connecté au bon réseau WiFi ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Connectez-vous au réseau WiFi de l'entreprise"},
+                    {text: "Réseau invisible", action: "fix", fix: "Vérifiez avec l'IT que le SSID est diffusé"}
+                ]
+            },
+            {
+                q: "Les LEDs du port réseau sont-elles allumées ?",
+                answers: [
+                    {text: "Oui", action: "layer", target: 2},
+                    {text: "Non", action: "fix", fix: "Testez avec un autre câble ou un autre port"},
+                    {text: "Je ne sais pas", action: "fix", fix: "Vérifiez l'arrière de votre PC et sur le switch"}
+                ]
+            }
+        ]
+    },
+    2: {
+        name: "Liaison de données",
+        questions: [
+            {
+                q: "La carte réseau est-elle détectée par le système ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Vérifiez le gestionnaire de périphériques, réinstallez les pilotes"},
+                    {text: "Je ne sais pas", action: "fix", fix: "Ouvrez le gestionnaire de périphériques (Windows+X)"}
+                ]
+            },
+            {
+                q: "Y a-t-il des erreurs de transmission sur l'interface ?",
+                answers: [
+                    {text: "Non", action: "layer", target: 3},
+                    {text: "Oui", action: "fix", fix: "Problème de câble ou de négociation. Testez en forçant 100Mbps"},
+                    {text: "Je ne sais pas", action: "cmd", cmd: "Exécutez: netstat -e"}
+                ]
+            },
+            {
+                q: "Authentification 802.1X fonctionnelle ?",
+                answers: [
+                    {text: "Oui/Pas utilisé", action: "next"},
+                    {text: "Échec d'authentification", action: "fix", fix: "Vérifiez certificat machine, compte ordinateur AD, RADIUS accessible"},
+                    {text: "Timeout", action: "fix", fix: "Vérifiez que le switch supporte 802.1X, délai EAP configuré"}
+                ]
+            },
+            {
+                q: "NAC (Network Access Control) autorise la connexion ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Quarantaine", action: "fix", fix: "Vérifiez antivirus à jour, patches Windows, conformité poste"},
+                    {text: "Bloqué", action: "fix", fix: "Contactez l'IT pour validation du poste"}
+                ]
+            }
+        ]
+    },
+    3: {
+        name: "Réseau",
+        questions: [
+            {
+                q: "Avez-vous une adresse IP valide ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non/APIPA", action: "fix", fix: "Problème DHCP. Essayez: ipconfig /release puis /renew"},
+                    {text: "Je ne sais pas", action: "cmd", cmd: "Exécutez: ipconfig /all"}
+                ]
+            },
+            {
+                q: "Pouvez-vous pinguer la passerelle ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Vérifiez la configuration IP et le VLAN"},
+                    {text: "Timeout", action: "fix", fix: "Possible problème de pare-feu ou de route"}
+                ]
+            },
+            {
+                q: "La résolution DNS fonctionne-t-elle ?",
+                answers: [
+                    {text: "Oui", action: "layer", target: 4},
+                    {text: "Non", action: "fix", fix: "Testez avec: nslookup google.com"},
+                    {text: "Partiellement", action: "fix", fix: "Vérifiez les serveurs DNS configurés"}
+                ]
+            },
+            {
+                q: "Connexion VPN établie ? (si télétravail)",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Échec connexion", action: "fix", fix: "Vérifiez Internet, serveur VPN accessible (port 443/4433)"},
+                    {text: "Déconnexions", action: "fix", fix: "Testez autre connexion Internet, vérifiez MTU"},
+                    {text: "Pas en télétravail", action: "next"}
+                ]
+            },
+            {
+                q: "Problème spécifique IPv4/IPv6 ?",
+                answers: [
+                    {text: "IPv4 OK", action: "next"},
+                    {text: "IPv6 seulement", action: "fix", fix: "Désactivez IPv6 temporairement pour tester"},
+                    {text: "Aucun ne fonctionne", action: "fix", fix: "Problème de configuration IP global"}
+                ]
+            }
+        ]
+    },
+    4: {
+        name: "Transport",
+        questions: [
+            {
+                q: "Le service utilise quel protocole/port ?",
+                answers: [
+                    {text: "HTTP/HTTPS", action: "next"},
+                    {text: "RDP (3389)", action: "next"},
+                    {text: "Autre/Custom", action: "next"},
+                    {text: "Je ne sais pas", action: "escalate"}
+                ]
+            },
+            {
+                q: "Pouvez-vous établir une connexion telnet sur le port ?",
+                answers: [
+                    {text: "Oui", action: "layer", target: 5},
+                    {text: "Non", action: "fix", fix: "Port bloqué par pare-feu ou service arrêté"},
+                    {text: "Je ne sais pas", action: "cmd", cmd: "telnet [serveur] [port]"}
+                ]
+            },
+            {
+                q: "Le proxy d'entreprise est-il configuré ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Configurez le proxy dans les paramètres système/navigateur"},
+                    {text: "Bypass nécessaire", action: "fix", fix: "Ajoutez l'exception dans la config proxy"}
+                ]
+            },
+            {
+                q: "Load balancer/Répartiteur de charge impliqué ?",
+                answers: [
+                    {text: "Non/Je ne sais pas", action: "next"},
+                    {text: "Oui - problème", action: "fix", fix: "Testez en accès direct sur un serveur spécifique"},
+                    {text: "Oui - OK", action: "layer", target: 5}
+                ]
+            }
+        ]
+    },
+    5: {
+        name: "Session",
+        questions: [
+            {
+                q: "L'authentification fonctionne-t-elle ?",
+                answers: [
+                    {text: "Oui", action: "layer", target: 6},
+                    {text: "Non", action: "next"},
+                    {text: "Parfois", action: "fix", fix: "Possible problème de charge ou de timeout"}
+                ]
+            },
+            {
+                q: "Type d'erreur d'authentification ?",
+                answers: [
+                    {text: "Mot de passe incorrect", action: "layer", target: 8},
+                    {text: "Compte verrouillé", action: "fix", fix: "Contactez l'IT pour débloquer le compte"},
+                    {text: "Certificat invalide", action: "fix", fix: "Vérifiez la date/heure du système"}
+                ]
+            },
+            {
+                q: "MFA/Double authentification ?",
+                answers: [
+                    {text: "Code reçu et validé", action: "next"},
+                    {text: "Pas de code reçu", action: "fix", fix: "Vérifiez numéro téléphone, application authenticator synchronisée"},
+                    {text: "Code refusé", action: "fix", fix: "Vérifiez heure système synchronisée, réinitialisez MFA"},
+                    {text: "Token physique", action: "fix", fix: "Vérifiez pile du token, synchronisation"}
+                ]
+            },
+            {
+                q: "Type d'authentification utilisé ?",
+                answers: [
+                    {text: "SSO/SAML", action: "goto", target: "sso"},
+                    {text: "Kerberos/AD", action: "goto", target: "kerberos"},
+                    {text: "RADIUS", action: "goto", target: "radius"},
+                    {text: "Local", action: "next"}
+                ]
+            },
+            {
+                id: "sso",
+                q: "Problème SSO/SAML spécifique ?",
+                answers: [
+                    {text: "Redirection infinie", action: "fix", fix: "Videz cache/cookies, vérifiez URL de callback"},
+                    {text: "Erreur SAML", action: "fix", fix: "Certificat expiré ou metadata à mettre à jour"},
+                    {text: "Timeout", action: "fix", fix: "Augmentez durée de session, vérifiez horloge système"}
+                ]
+            },
+            {
+                id: "kerberos",
+                q: "Erreur Kerberos détectée ?",
+                answers: [
+                    {text: "Clock skew", action: "fix", fix: "Synchronisez l'heure avec le DC (w32tm /resync)"},
+                    {text: "Ticket expiré", action: "fix", fix: "klist purge puis nouvelle authentification"},
+                    {text: "SPN introuvable", action: "escalate"}
+                ]
+            }
+        ]
+    },
+    6: {
+        name: "Présentation",
+        questions: [
+            {
+                q: "Les données s'affichent-elles correctement ?",
+                answers: [
+                    {text: "Oui", action: "layer", target: 7},
+                    {text: "Non", action: "fix", fix: "Vérifiez l'encodage et les paramètres régionaux"},
+                    {text: "Caractères bizarres", action: "fix", fix: "Problème d'encodage UTF-8"}
+                ]
+            },
+            {
+                q: "Problème de certificat SSL/TLS ?",
+                answers: [
+                    {text: "Pas d'erreur", action: "next"},
+                    {text: "Certificat non valide", action: "fix", fix: "Vérifiez date expiration, autorité de certification reconnue"},
+                    {text: "Erreur de chaîne", action: "fix", fix: "Installez certificat racine/intermédiaire manquant"},
+                    {text: "Version TLS", action: "fix", fix: "Activez TLS 1.2/1.3 dans paramètres Internet"}
+                ]
+            }
+        ]
+    },
+    7: {
+        name: "Application",
+        questions: [
+            {
+                q: "L'application se lance-t-elle ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Vérifiez les prérequis (.NET, Java, etc.)"},
+                    {text: "Erreur", action: "next"}
+                ]
+            },
+            {
+                q: "Quel type d'erreur ?",
+                answers: [
+                    {text: "Fonctionnalité manquante", action: "layer", target: 9},
+                    {text: "Erreur technique", action: "escalate"},
+                    {text: "Lenteur", action: "fix", fix: "Vérifiez les ressources système"},
+                    {text: "Plantage", action: "fix", fix: "Réinstallez ou réparez l'application"}
+                ]
+            }
+        ]
+    },
+    8: {
+        name: "Humain",
+        questions: [
+            {
+                q: "L'utilisateur a-t-il été formé ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Planifiez une formation avec le responsable"},
+                    {text: "Partiellement", action: "fix", fix: "Identifiez les lacunes et formez"}
+                ]
+            },
+            {
+                q: "Suit-il la procédure correcte ?",
+                answers: [
+                    {text: "Oui", action: "layer", target: 7},
+                    {text: "Non", action: "fix", fix: "Montrez la procédure correcte"},
+                    {text: "Pas de procédure", action: "fix", fix: "Documentez et diffusez une procédure"}
+                ]
+            }
+        ]
+    },
+    9: {
+        name: "Politiques internes",
+        questions: [
+            {
+                q: "L'utilisateur a-t-il les droits nécessaires ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Faire une demande d'accès via le processus habituel"},
+                    {text: "À vérifier", action: "fix", fix: "Consultez l'AD ou l'outil de gestion des droits"}
+                ]
+            },
+            {
+                q: "Y a-t-il un blocage de sécurité ?",
+                answers: [
+                    {text: "Filtrage URL", action: "fix", fix: "Vérifiez la catégorie, demandez déblocage si légitime"},
+                    {text: "Pare-feu", action: "fix", fix: "Demande d'ouverture de flux à faire"},
+                    {text: "Antivirus", action: "fix", fix: "Vérifiez les logs, ajoutez une exception si nécessaire"},
+                    {text: "Non", action: "layer", target: 10}
+                ]
+            }
+        ]
+    },
+    10: {
+        name: "Réglementation",
+        questions: [
+            {
+                q: "L'accès est-il conforme RGPD ?",
+                answers: [
+                    {text: "Oui", action: "next"},
+                    {text: "Non", action: "fix", fix: "Accès impossible sans base légale"},
+                    {text: "À vérifier", action: "fix", fix: "Consultez le DPO"}
+                ]
+            },
+            {
+                q: "Contraintes NIS2 applicables ?",
+                answers: [
+                    {text: "Non", action: "complete"},
+                    {text: "Oui", action: "fix", fix: "Vérifiez la conformité avec le RSSI"},
+                    {text: "Je ne sais pas", action: "fix", fix: "Vérifiez si service essentiel/important"}
+                ]
+            }
+        ]
+    }
+};
+
+let currentLayer = 1;
+let currentQuestion = 0;
+let history = [];
+
+function startDiagnostic(layer) {
+    document.getElementById('quickStart').style.display = 'none';
+    document.getElementById('layerSelector').style.display = 'grid';
+    selectLayer(layer);
+}
+
+function selectLayer(layer) {
+    currentLayer = layer;
+    currentQuestion = 0;
+    
+    document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.layer-btn')[layer-1].classList.add('active');
+    
+    showQuestion();
+    document.getElementById('history').style.display = 'block';
+}
+
+function showQuestion() {
+    const layer = layers[currentLayer];
+    const question = layer.questions[currentQuestion];
+    
+    if (!question) {
+        showComplete();
+        return;
+    }
+    
+    let html = `
+        <h2>Couche ${currentLayer} - ${layer.name}</h2>
+        <div class="question-block">
+            <div class="question">${question.q}</div>
+            <div class="answers">
+    `;
+    
+    question.answers.forEach((answer, idx) => {
+        html += `<button class="answer-btn" onclick="handleAnswer(${idx})">${answer.text}</button>`;
+    });
+    
+    html += `
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn btn-secondary" onclick="goBack()">← Retour</button>
+            <button class="nav-btn btn-danger" onclick="escalate()">Escalader</button>
+        </div>
+    `;
+    
+    document.getElementById('diagnosticArea').innerHTML = html;
+    document.getElementById('diagnosticArea').classList.add('active');
+}
+
+function handleAnswer(answerIdx) {
+    const layer = layers[currentLayer];
+    const question = layer.questions[currentQuestion];
+    const answer = question.answers[answerIdx];
+    
+    addToHistory(`Couche ${currentLayer} - ${question.q} → ${answer.text}`);
+    
+    switch(answer.action) {
+        case 'next':
+            currentQuestion++;
+            showQuestion();
+            break;
+        case 'layer':
+            selectLayer(answer.target);
+            break;
+        case 'fix':
+            showFix(answer.fix);
+            break;
+        case 'cmd':
+            showCommand(answer.cmd);
+            break;
+        case 'goto':
+            const targetQ = layer.questions.findIndex(q => q.id === answer.target);
+            if (targetQ !== -1) {
+                currentQuestion = targetQ;
+                showQuestion();
+            }
+            break;
+        case 'escalate':
+            escalate();
+            break;
+        case 'complete':
+            showComplete();
+            break;
+    }
+}
+
+function showFix(fix) {
+    document.getElementById('diagnosticArea').innerHTML += `
+        <div class="action-box">
+            <strong>✅ Action recommandée :</strong><br>
+            ${fix}
+        </div>
+    `;
+}
+
+function showCommand(cmd) {
+    document.getElementById('diagnosticArea').innerHTML += `
+        <div class="action-box">
+            <strong>💻 Commande à exécuter :</strong><br>
+            <code>${cmd}</code>
+        </div>
+    `;
+}
+
+function escalate() {
+    document.getElementById('diagnosticArea').innerHTML = `
+        <div class="error-box">
+            <h3>🔴 Escalade nécessaire</h3>
+            <p>Ce problème nécessite l'intervention du niveau 2/3.</p>
+            <p>Transmettez l'historique ci-dessous au support supérieur.</p>
+        </div>
+    `;
+}
+
+function showComplete() {
+    document.getElementById('diagnosticArea').innerHTML = `
+        <div class="action-box">
+            <h3>✅ Diagnostic terminé</h3>
+            <p>Si le problème persiste, escaladez avec l'historique complet.</p>
+        </div>
+    `;
+}
+
+function goBack() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        showQuestion();
+    } else {
+        document.getElementById('quickStart').style.display = 'block';
+        document.getElementById('layerSelector').style.display = 'none';
+        document.getElementById('diagnosticArea').classList.remove('active');
+        document.getElementById('history').style.display = 'none';
+    }
+}
+
+function addToHistory(entry) {
+    history.push(entry);
+    const list = document.getElementById('historyList');
+    list.innerHTML = history.map(h => `<li>${h}</li>`).join('');
+}
+</script>
+</body>
+</html>

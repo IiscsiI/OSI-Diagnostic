@@ -36,3 +36,46 @@ Ce projet est fourni sous une licence restreinte :
 ## 📫 Contact
 
 Pour toute demande liée à l’utilisation ou à l’adaptation du projet, merci de me contacter via GitHub.
+
+###################################################################################################################################################################################
+###################################################################################################################################################################################
+###################################################################################################################################################################################
+
+# OSI Decision Tree Editor
+
+🛠️ Web application to create, edit, and export decision trees structured by OSI layer.  
+This project is especially useful for documenting network diagnostics and troubleshooting procedures.
+
+## ✨ Features
+
+- Add, edit, and delete OSI layers
+- Graphical edition of questions and answers
+- Associated actions: go to another layer, run a command, apply a fix, etc.
+- Easy import/export in JavaScript format (`const layers = {...}`)
+- Manual import via copy/paste
+- Load and edit `.html` files containing `layers` structure
+- Undo changes and restore initial loaded state
+
+## 🚀 Usage
+
+1. Open the file `osi-editor.html` in your web browser.
+2. Click **📁 Load HTML File** or **📋 Import JS** to get started.
+3. Edit your tree visually.
+4. Export the result with **💾 Export JS**.
+
+## 📦 Export
+
+The decision tree is exported as a JavaScript variable: `const layers = {...}`, ready to be integrated into your tools or web pages.
+
+## 🛡️ License
+
+This project is distributed under a **restricted license**:
+
+- **Free for personal, educational, public-sector, or non-profit use**
+- **Commercial use is strictly forbidden**, including through copies, forks, or derived works
+
+👉 See the [`LICENSE`](LICENSE) file for details.
+
+## 📫 Contact
+
+For any request related to usage or adaptation of the project, please contact the author through GitHub.

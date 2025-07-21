@@ -16,7 +16,7 @@ Ce projet est particulièrement adapté à la documentation des diagnostics rés
 ## 🚀 Utilisation
 
 1. Ouvrez le fichier `osi-editor.html` dans votre navigateur.
-2. Cliquez sur **📁 Charger fichier HTML** ou **📋 Importer JS** pour démarrer.
+2. Cliquez sur **📁 Charger fichier HTML** ou **📋 Importer JS** pour démarrer. Un modèle de base `osi-diagnostic-tool.html` vous est fourni dans le projet Github.
 3. Éditez visuellement votre arbre.
 4. Exportez le résultat avec **💾 Exporter JS**.
 
@@ -59,7 +59,7 @@ This project is especially useful for documenting network diagnostics and troubl
 ## 🚀 Usage
 
 1. Open the file `osi-editor.html` in your web browser.
-2. Click **📁 Load HTML File** or **📋 Import JS** to get started.
+2. Click **📁 Load HTML File** or **📋 Import JS** to get started. A template `osi-diagnostic-tool.html` ios provided in this Github project.
 3. Edit your tree visually.
 4. Export the result with **💾 Export JS**.
 
